@@ -33,3 +33,11 @@ body {
     color:white;
     font-size:20px;
 }
+.top-message {
+    text-align: center;
+    height: 20px;
+    color:#CC0000;
+    padding: 20px;
+    font-weight: bold;
+    font-size: 20px;
+}

@@ -53,6 +53,7 @@ function addToScreen(char) {
     console.log(index);
 
 }
+
 function deleteChar() {
     if (index > 0 && index <= MAX){
         index--;
@@ -62,16 +63,33 @@ function deleteChar() {
     //console.log(index);
 }
 
+function changeColor(newColor) {
+    const temp = index;
+    for(let i = temp - 5; i < temp; i++){
+        screen.children[i].style.background = newColor;
+        console.log("i is " + i);
+    }
+}
+
+function displayMessage(winloss) {
+    winner = document.querySelector(".top-message");
+    winner.innerText = winloss;
+}
+
 async function submitWord() {
     await getWOTD();
     //console.log("word is being validated is: " + words);
     if (!gameIsOver) {
         words = "";
-        if (words.length === 5) {
-            index++;
+        changeColor("#520015");
+        console.log("before checking loss index is " + index);
+        if (index === MAX){
+            displayMessage("You lost!");
         }
     }
     else {
+        displayMessage("You won!");
+        changeColor("green");
         console.log("You won!");
     }
 
