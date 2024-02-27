@@ -1,21 +1,49 @@
 const getWord = "https://words.dev-apis.com/word-of-the-day";
+const postWord = "https://words.dev-apis.com/validate-word";
 
 const screen = document.querySelector(".grid-table");
+const loadingIcon = document.getElementById("spinny");
+
 const MAX = screen.children.length;
 let words = "";
 let index = 0;
 let gameIsOver = false;
 
-async function letterSearch(){
+
+async function validateWordPost() {
+
+    let postData = { "word": words }
+    const promise = await fetch(postWord,{
+        method: "POST",
+        body: JSON.stringify(postData)
+    });
+    let processedResponse = await promise.json();
+    console.log(processedResponse.validWord, " is the post promise");
+    if(processedResponse.validWord) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+//validateWordPost();
+
+async function verifyWordFetch() {
     const promise = await fetch(getWord);
     let processedResponse = await promise.json();
+    console.log(processedResponse.word);
+    if (processedResponse.word === words) {
+        gameIsOver = true;
+        //console.log("gameOver is now "+ gameIsOver);
+    } else { 
+        gameIsOver = false; 
+    }
 
-    console.log(words, " is words.");
+        //console.log("else Not the correct word");
+
     const currentWord = words.split("");
     let wotd = processedResponse.word.split("");
     let newlist = [0, 0, 0, 0, 0];
-    console.log(currentWord, " is currentWord.");
-    console.log(wotd, " is word of the day.");
 
     for (let i = 0; i < currentWord.length; i++) {
         if(currentWord[i] === wotd[i]){
@@ -29,24 +57,7 @@ async function letterSearch(){
             newlist[i] = 2;
         }
     }
-
-    console.log(newlist);
     return newlist;
-}
-
-async function getWOTD(){
-    const promise = await fetch(getWord);
-    let processedResponse = await promise.json();
-
-    console.log(processedResponse.word, " is the wotd.");
-    if (processedResponse.word === words) {
-        gameIsOver = true;
-        //console.log("gameOver is now "+ gameIsOver);
-    }
-    else {
-        //console.log("else Not the correct word");
-        gameIsOver = false;
-    }
 }
 
 function isLetter(letter) {
@@ -55,15 +66,13 @@ function isLetter(letter) {
 
 function addToScreen(char) {
     if (index >= MAX || words.length === 5) {
-        return
+        return;
     }
     else {
         words += char;
-        screen.children[index].innerText = char;
+        screen.children[index].innerText = char.toUpperCase();
         index++;
     }
-    //console.log(index);
-
 }
 
 function deleteChar() {
@@ -88,6 +97,10 @@ function changeColor(colorList) {
                 break;
             case 2:
                 screen.children[i].style.background = "#bd8600";
+                break;
+            case 3:
+                screen.children[i].style.background = "red";
+
         }
         count++;
     }
@@ -98,12 +111,27 @@ function displayMessage(winloss) {
     winner.innerText = winloss;
 }
 
+function toggle() {
+    loadingIcon.classList.toggle("hidden");
+}
+
+//async function invalidWordDelay() {
+//    changeColor([3,3,3,3,3]);
+//    await new Promise(r => setTimeout(r, 500));
+//    changeColor([0, 0, 0, 0, 0]);
+//}
+
 async function submitWord() {
-    const loadingIcon = document.getElementById("spinny");
-    loadingIcon.classList.toggle("hidden");
-    await getWOTD();
-    const colorList = await letterSearch();
-    loadingIcon.classList.toggle("hidden");
+    toggle();
+    const valid = await validateWordPost();
+    if(!valid) { 
+        //invalidWordDelay();
+        toggle();
+        return;
+    }
+    const colorList = await verifyWordFetch();
+    // fetching the word of the day and verifying it
+    toggle();
 
     //console.log("word is being validated is: " + words);
     if (!gameIsOver) {
@@ -123,26 +151,26 @@ async function submitWord() {
 
 function init() {
     addEventListener("keydown", (event) =>{
-            if (!gameIsOver){
-            //console.log(event.key)
-            if(event.key === "Backspace"){
-                deleteChar();
-            }
-            else if(event.key === "Enter") {
-                //console.log("enter key");
-                if(words.length % 5 === 0){
-                    submitWord();
+            if (!gameIsOver) {
+                //console.log(event.key)
+                if(event.key === "Backspace" && words.length > 0){
+                    deleteChar();
                 }
-            }
-            if (!isLetter(event.key)) {
-                event.preventDefault();
-            }
-            else {
-                addToScreen(event.key);
-            }
-            //console.log(words);
+                else if(event.key === "Enter") {
+                    //console.log("enter key");
+                    if(words.length % 5 === 0){
+                        submitWord();
+                    }
+                }
+                if (!isLetter(event.key)) {
+                    event.preventDefault();
+                }
+                else {
+                    addToScreen(event.key);
+                }
+                //console.log(words);
         }
-    })
+    });
 }
 
 init();
