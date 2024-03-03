@@ -3,12 +3,17 @@ const postWord = "https://words.dev-apis.com/validate-word";
 
 const screen = document.querySelector(".grid-table");
 const loadingIcon = document.getElementById("spinny");
-
 const MAX = screen.children.length;
+const MAX_LENGTH = 5;
 let words = "";
 let index = 0;
 let gameIsOver = false;
-
+//async function testFetch() {
+//    const promise = await fetch(getWord);
+//    let processedResponse = await promise.json();
+//    console.log(processedResponse.word);
+//}
+//testFetch();
 
 async function validateWordPost() {
 
@@ -41,22 +46,25 @@ async function verifyWordFetch() {
 
         //console.log("else Not the correct word");
 
-    const currentWord = words.split("");
+    const userWord = words.split("");
     let wotd = processedResponse.word.split("");
     let newlist = [0, 0, 0, 0, 0];
 
-    for (let i = 0; i < currentWord.length; i++) {
-        if(currentWord[i] === wotd[i]){
+    for (let i = 0; i < userWord.length; i++) {
+        if(userWord[i] === wotd[i]){
             newlist[i] = 1;
             wotd[i] = "0";
         }
     }
-    for (let i = 0; i < currentWord.length; i++) {
-        let position = wotd.indexOf(currentWord[i]);
+    console.log("green", wotd);
+    for (let i = 0; i < userWord.length; i++) {
+        let position = wotd.indexOf(userWord[i]);
         if (position >= 0) {
             newlist[i] = 2;
+            wotd[position] = "0";
         }
     }
+    console.log(newlist);
     return newlist;
 }
 
@@ -65,14 +73,17 @@ function isLetter(letter) {
 }
 
 function addToScreen(char) {
-    if (index >= MAX || words.length === 5) {
-        return;
+    console.log(words, words.length);
+    if (words.length === MAX_LENGTH) {
+        words = words.substring(0, words.length - 1) + char;  
+        screen.children[index - 1].innerText = char.toUpperCase();
     }
     else {
         words += char;
         screen.children[index].innerText = char.toUpperCase();
         index++;
     }
+    console.log(index)
 }
 
 function deleteChar() {
@@ -99,7 +110,7 @@ function changeColor(colorList) {
                 screen.children[i].style.background = "#bd8600";
                 break;
             case 3:
-                screen.children[i].style.background = "red";
+                screen.children[i].style.background = "#CC0000";
 
         }
         count++;
@@ -117,11 +128,14 @@ function toggle() {
 
 //async function invalidWordDelay() {
 //    changeColor([3,3,3,3,3]);
-//    await new Promise(r => setTimeout(r, 500));
+//    await new Promise(r => setTimeout(r, 50));
 //    changeColor([0, 0, 0, 0, 0]);
 //}
 
 async function submitWord() {
+    if(words.length !== MAX_LENGTH){
+        return;
+    }
     toggle();
     const valid = await validateWordPost();
     if(!valid) { 
@@ -157,13 +171,11 @@ function init() {
                     deleteChar();
                 }
                 else if(event.key === "Enter") {
-                    //console.log("enter key");
-                    if(words.length % 5 === 0){
-                        submitWord();
-                    }
+                    submitWord();
                 }
-                if (!isLetter(event.key)) {
+                else if (!isLetter(event.key)) {
                     event.preventDefault();
+                    //TODO not necesarry
                 }
                 else {
                     addToScreen(event.key);
@@ -172,5 +184,4 @@ function init() {
         }
     });
 }
-
 init();
