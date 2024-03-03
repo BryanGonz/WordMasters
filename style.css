@@ -49,8 +49,22 @@ body {
 .spin {
     animation: spin 1.5s linear infinite;
 }
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+.invalid {
+    animation: flash 1s;
+}
+
+@keyframes flash { /* by Brian Holt */
+    5% {
+        border-color: #CC0000;
+    }
+    100% {
+        border-color: #ccc;
     }
 }

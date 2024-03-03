@@ -8,6 +8,7 @@ const MAX_LENGTH = 5;
 let words = "";
 let index = 0;
 let gameIsOver = false;
+let loadDelay = false;
 //async function testFetch() {
 //    const promise = await fetch(getWord);
 //    let processedResponse = await promise.json();
@@ -110,8 +111,7 @@ function changeColor(colorList) {
                 screen.children[i].style.background = "#bd8600";
                 break;
             case 3:
-                screen.children[i].style.background = "#CC0000";
-
+                invalidWordDelay(i);
         }
         count++;
     }
@@ -122,30 +122,35 @@ function displayMessage(winloss) {
     winner.innerText = winloss;
 }
 
-function toggle() {
+function toggle(isLoading) {
     loadingIcon.classList.toggle("hidden");
+    loadDelay = isLoading;
 }
 
-//async function invalidWordDelay() {
-//    changeColor([3,3,3,3,3]);
-//    await new Promise(r => setTimeout(r, 50));
-//    changeColor([0, 0, 0, 0, 0]);
-//}
+function invalidWordDelay(colorIndex) {
+    screen.children[colorIndex].classList.remove("invalid");
+    setTimeout( () => {
+        screen.children[colorIndex].classList.add("invalid");
+    }, 10);
+}
+    //screen.children[colorIndex].classList.remove("invalid");
+
 
 async function submitWord() {
     if(words.length !== MAX_LENGTH){
         return;
     }
-    toggle();
+    toggle(true);
     const valid = await validateWordPost();
     if(!valid) { 
         //invalidWordDelay();
-        toggle();
+        changeColor([3, 3, 3, 3, 3]);
+        toggle(false);
         return;
     }
     const colorList = await verifyWordFetch();
     // fetching the word of the day and verifying it
-    toggle();
+    toggle(false);
 
     //console.log("word is being validated is: " + words);
     if (!gameIsOver) {
@@ -165,7 +170,9 @@ async function submitWord() {
 
 function init() {
     addEventListener("keydown", (event) =>{
-            if (!gameIsOver) {
+            if (gameIsOver || loadDelay) {
+                return;
+            }
                 //console.log(event.key)
                 if(event.key === "Backspace" && words.length > 0){
                     deleteChar();
@@ -181,7 +188,6 @@ function init() {
                     addToScreen(event.key);
                 }
                 //console.log(words);
-        }
     });
 }
 init();
